@@ -145,6 +145,8 @@ void TRTEngine::runInferenceTile(const FImage& input, const Point tilePos, FImag
         throw Error("Failed to synchronize CUDA stream.");
 
     // Copy tile to output
+    int padX = m_outputTileW / 16;
+    int padY = m_outputTileH / 16;
     Point outputTilePos(tilePos.x * (m_outputTileW / m_inputTileW), tilePos.y * (m_outputTileH / m_inputTileH));
     p = static_cast<float*>(m_outputBuffer.hostBuffer.data());
     for (int c = 0; c < 3; c++)
@@ -159,11 +161,19 @@ void TRTEngine::runInferenceTile(const FImage& input, const Point tilePos, FImag
                     p++;
                     continue;
                 }
-                float r = 0.5f - Abs(x - m_outputTileW / 2) * 1.0f / m_outputTileW;
-                r *= 0.5f - Abs(y - m_outputTileH / 2) * 1.0f / m_outputTileH;
-                if (r == 0.0f)
-                    r = 0.001f;
-                output.Pixel(x0, y0, c) += *p++ * r;
+                float rx = 0.5f - Abs(x - m_outputTileW / 2) * 1.0f / (m_outputTileW - 2 * padX);
+                if (rx < 0.001f)
+                    rx = 0.001f;
+                float ry = 0.5f - Abs(y - m_outputTileH / 2) * 1.0f / (m_outputTileH - 2 * padY);
+                if (ry < 0.001f)
+                    ry = 0.001f;
+                float r = rx * ry;
+                float v = *p++;
+                if (v < 0.0f)
+                    v = 0.0f;
+                else if (v > 1.0f)
+                    v = 1.0f;
+                output.Pixel(x0, y0, c) += v * r;
                 mask.Pixel(x0, y0, c) += r;
             }
         }
@@ -281,6 +291,9 @@ bool TRTInferenceInstance::ExecuteOn(View& view)
         Resample r(bf, 1.0 / factorW, 1.0 / factorH);
         r >> imgFromTRT;
     }
+
+    if (imgFromTRT.ColorSpace() != image.ColorSpace())
+        imgFromTRT.SetColorSpace(image.ColorSpace());
 
     image.CopyImage(imgFromTRT);
 
