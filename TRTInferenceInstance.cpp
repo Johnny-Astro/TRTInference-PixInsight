@@ -182,6 +182,7 @@ void TRTEngine::runInferenceTile(const FImage& input, const Point tilePos, FImag
 TRTInferenceInstance::TRTInferenceInstance(const MetaProcess* m)
     : ProcessImplementation(m)
     , p_tileOverlap(TheTRTInferenceTileOverlapParameter->DefaultValue())
+    , p_keepOutputDimension(TheTRTInferenceKeepOutputDimensionParameter->DefaultValue())
 {
 }
 
@@ -198,6 +199,7 @@ void TRTInferenceInstance::Assign(const ProcessImplementation& p)
     {
         p_trtEngine = x->p_trtEngine;
         p_tileOverlap = x->p_tileOverlap;
+        p_keepOutputDimension = x->p_keepOutputDimension;
     }
 }
 
@@ -278,22 +280,25 @@ bool TRTInferenceInstance::ExecuteOn(View& view)
 
     imgFromTRT.Divide(mask);
 
-    // Resample
-    bool useIntegerResample = false;
-    if ((factorW > 1) && (factorW == factorH))
-    {
-        IntegerResample ir(-factorW);
-        ir >> imgFromTRT;
-    }
-    else if (factorW > 1)
-    {
-        BicubicFilterPixelInterpolation bf(factorW / 2, factorH / 2, CubicBSplineFilter());
-        Resample r(bf, 1.0 / factorW, 1.0 / factorH);
-        r >> imgFromTRT;
-    }
-
+    // Keep original color space
     if (imgFromTRT.ColorSpace() != image.ColorSpace())
         imgFromTRT.SetColorSpace(image.ColorSpace());
+
+    if (!p_keepOutputDimension)
+    {
+        // Resample
+        if ((factorW > 1) && (factorW == factorH))
+        {
+            IntegerResample ir(-factorW);
+            ir >> imgFromTRT;
+        }
+        else if (factorW > 1)
+        {
+            BicubicFilterPixelInterpolation bf(factorW / 2, factorH / 2, CubicBSplineFilter());
+            Resample r(bf, 1.0 / factorW, 1.0 / factorH);
+            r >> imgFromTRT;
+        }
+    }
 
     image.CopyImage(imgFromTRT);
 
@@ -304,6 +309,8 @@ void* TRTInferenceInstance::LockParameter(const MetaParameter* p, size_type tabl
 {
     if (p == TheTRTInferenceTileOverlapParameter)
         return &p_tileOverlap;
+    if (p == TheTRTInferenceKeepOutputDimensionParameter)
+        return &p_keepOutputDimension;
     return nullptr;
 }
 

@@ -1,10 +1,11 @@
 #ifndef __TRTInferenceInterface_h
 #define __TRTInferenceInterface_h
 
+#include <pcl/CheckBox.h>
+#include <pcl/NumericControl.h>
 #include <pcl/ProcessInterface.h>
 #include <pcl/Sizer.h>
 #include <pcl/ToolButton.h>
-#include <pcl/NumericControl.h>
 
 #include "TRTInferenceInstance.h"
 
@@ -47,6 +48,7 @@ private:
         Control         Inference_Control;
             VerticalSizer   Inference_Sizer;
                 NumericControl  TileOverlap_NumericControl;
+                CheckBox        KeepOutputDimension_CheckBox;
     };
 
     GUIData* GUI = nullptr;

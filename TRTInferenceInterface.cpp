@@ -103,6 +103,7 @@ void TRTInferenceInterface::UpdateControls()
 	GUI->TRTEngine_Edit.SetText(m_instance.p_trtEngine);
 	Settings::Write("TRTEngine", m_instance.p_trtEngine);
 	GUI->TileOverlap_NumericControl.SetValue(m_instance.p_tileOverlap);
+	GUI->KeepOutputDimension_CheckBox.SetChecked(m_instance.p_keepOutputDimension);
 }
 
 void TRTInferenceInterface::__EditValueUpdated(NumericEdit& sender, double value)
@@ -125,6 +126,10 @@ void TRTInferenceInterface::__Click(Button& sender, bool checked)
 			m_instance.p_trtEngine = d.FileName();
 			UpdateControls();
 		}
+	}
+	else if (sender == GUI->KeepOutputDimension_CheckBox)
+	{
+		m_instance.p_keepOutputDimension = checked;
 	}
 }
 
@@ -185,8 +190,15 @@ TRTInferenceInterface::GUIData::GUIData(TRTInferenceInterface& w)
 		                                  "<p>The image is processed in tiles, with overlap and feathering among the adjacent tiles to reduce artifacts at tile edges.</p>");
 	TileOverlap_NumericControl.OnValueUpdated((NumericEdit::value_event_handler)&TRTInferenceInterface::__EditValueUpdated, w);
 
+	KeepOutputDimension_CheckBox.SetText("Keep Output Dimension");
+	KeepOutputDimension_CheckBox.SetToolTip("<p>This is for the AI models with scale-up ratio on the output tensors.</p>"
+											"<p>When enabled, the scale-up will be reflected in the result.</p>"
+										    "<p>When disabled, resampling will be applied to the output so the result will have the original dimension.</p>");
+	KeepOutputDimension_CheckBox.OnClick((Button::click_event_handler)&TRTInferenceInterface::__Click, w);
+
 	Inference_Sizer.SetSpacing(4);
 	Inference_Sizer.Add(TileOverlap_NumericControl);
+	Inference_Sizer.Add(KeepOutputDimension_CheckBox);
 
 	Inference_Control.SetSizer(Inference_Sizer);
 

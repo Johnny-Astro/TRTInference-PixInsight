@@ -22,6 +22,17 @@ public:
 
 extern TRTInferenceTileOverlap* TheTRTInferenceTileOverlapParameter;
 
+class TRTInferenceKeepOutputDimension : public MetaBoolean
+{
+public:
+    TRTInferenceKeepOutputDimension(MetaProcess*);
+
+    IsoString Id() const override;
+    bool DefaultValue() const override;
+};
+
+extern TRTInferenceKeepOutputDimension* TheTRTInferenceKeepOutputDimensionParameter;
+
 PCL_END_LOCAL
 
 }	// namespace pcl

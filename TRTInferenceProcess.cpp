@@ -19,6 +19,7 @@ TRTInferenceProcess::TRTInferenceProcess()
 
     // Instantiate process parameters
     new TRTInferenceTileOverlap(this);
+    new TRTInferenceKeepOutputDimension(this);
 }
 
 IsoString TRTInferenceProcess::Id() const

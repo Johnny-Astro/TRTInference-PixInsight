@@ -72,6 +72,7 @@ public:
 private:
     String p_trtEngine;
     double p_tileOverlap;
+    bool p_keepOutputDimension;
 
     friend class TRTInferenceProcess;
     friend class TRTInferenceInterface;
