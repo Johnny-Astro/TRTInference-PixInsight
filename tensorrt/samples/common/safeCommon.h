@@ -189,7 +189,12 @@ private:
 inline void safeLoadLibrary(const std::string& path)
 {
 #ifdef _MSC_VER
+#ifdef UNICODE
+    std::wstring wpath = std::wstring(path.begin(), path.end());
+    void* handle = LoadLibrary(wpath.c_str());
+#else
     void* handle = LoadLibrary(path.c_str());
+#endif
 #else
     int32_t flags{RTLD_LAZY};
     void* handle = dlopen(path.c_str(), flags);
